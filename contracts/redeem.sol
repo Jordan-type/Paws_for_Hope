@@ -4,13 +4,8 @@ pragma solidity ^0.8.26;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./registerUsers.sol";
-import "./tokenHelPet.sol";
+import "./tokenPawsForHopeToken.sol";
 
-/**
- * @dev Contract deployed on Base Sepolia
- * @notice You can view the deployed contract at:
- * https://sepolia.basescan.org/address/0x8D94F785E28657400d31b2cc3a68404Cd8557B6A#code
-*/
 
 contract Redeem is Ownable {
     // Counter for post IDs
@@ -26,7 +21,7 @@ contract Redeem is Ownable {
 
     // Reference to other contracts
     RegisterUsers public registerUsers;
-    HelPetToken public tokenHelPet;
+    PawsForHopeToken public tokenPawsForHopeToken;
 
     // Mapping to track authorized agents
     mapping(address => bool) private agents;
@@ -43,13 +38,13 @@ contract Redeem is Ownable {
     /**
      * @dev Constructor initializes the contract with references to other contracts
      * @param _registerUsers Address of the RegisterUsers contract
-     * @param _tokenHelPet Address of the HelPetToken contract
+     * @param _tokenPawsForHopeToken Address of the PawsForHopeToken contract
      */
-    constructor(address _registerUsers, address _tokenHelPet) Ownable(msg.sender) {
+    constructor(address _registerUsers, address _tokenPawsForHopeToken) Ownable(msg.sender) {
         require(_registerUsers != address(0), "Invalid RegisterUsers address");
-        require(_tokenHelPet != address(0), "Invalid TokenHelPet address");
+        require(_tokenPawsForHopeToken != address(0), "Invalid tokenPawsForHopeToken address");
         registerUsers = RegisterUsers(_registerUsers);
-        tokenHelPet = HelPetToken(_tokenHelPet);
+        tokenPawsHope = PawsForHopeToken(_tokenPawsForHopeToken);
     }
 
     /**
@@ -92,7 +87,7 @@ contract Redeem is Ownable {
     /**
      * @dev Creates a new post for an item
      * @param _stock Number of items in stock
-     * @param _price Price in TokenHelPet tokens
+     * @param _price Price in PawsForHopeToken tokens
      */
     function createPost(uint256 _stock, uint256 _price) external {
         require(registerUsers.isRegisteredEntity(msg.sender), "Only registered entities can create posts");
@@ -137,12 +132,12 @@ contract Redeem is Ownable {
         require(post.isOpen, "Post is closed");
         require(post.stock > 0, "No items left in stock");
         require(
-            tokenHelPet.balanceOf(msg.sender) >= post.price,
+            tokenPawsForHopeToken.balanceOf(msg.sender) >= post.price,
             "Insufficient token balance"
         );
 
         post.stock--;
-        tokenHelPet.transferFrom(msg.sender, post.creator, post.price);
+        tokenPawsForHopeToken.transferFrom(msg.sender, post.creator, post.price);
         
         emit ItemRedeemed(_postId, msg.sender);
     }

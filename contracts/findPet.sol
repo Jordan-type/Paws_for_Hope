@@ -4,13 +4,8 @@ pragma solidity ^0.8.26;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./registerUsers.sol";
-import "./tokenHelPet.sol";
+import "./tokenPawsForHopeToken.sol";
 
-/**
- * @dev Contract deployed on Base Sepolia
- * @notice You can view the deployed contract at:
- * https://sepolia.basescan.org/address/0x22b15F336927ED999D80e14d51046391FF8ACbfa#code
-*/
 
 contract FindPet is Ownable {
     
@@ -41,7 +36,7 @@ contract FindPet is Ownable {
     
     // Reference to other contracts
     RegisterUsers public registerUsers;
-    HelPetToken public tokenHelPet;
+    PawsForHopeToken public tokenPawsForHopeToken;
     IERC20 public usdc;
 
     // Events
@@ -53,13 +48,13 @@ contract FindPet is Ownable {
     /**
      * @dev Constructor initializes the contract with references to other contracts
      * @param _registerUsers Address of the RegisterUsers contract
-     * @param _tokenHelPet Address of the TokenHelPet contract
+     * @param tokenPawsForHopeToken Address of the tokenPawsForHopeToken contract
      */
-    constructor(address _registerUsers, address _tokenHelPet) Ownable(msg.sender) {
+    constructor(address _registerUsers, address _tokenPawsForHopeToken) Ownable(msg.sender) {
         require(_registerUsers != address(0), "Invalid RegisterUsers address");
-        require(_tokenHelPet != address(0), "Invalid TokenHelPet address");
+        require(_tokenPawsForHopeToken != address(0), "Invalid tokenPawsForHopeToken address");
         registerUsers = RegisterUsers(_registerUsers);
-        tokenHelPet = HelPetToken(_tokenHelPet);
+        tokenPawsForHopeToken = PawsForHopeToken(_tokenPawsForHopeToken);
         usdc = IERC20(USDC);
     }
 
@@ -162,7 +157,7 @@ contract FindPet is Ownable {
         );
 
         // Mint HelPet tokens to beneficiary
-        tokenHelPet.mint(_beneficiary, 50);
+        tokenPawsForHopeToken.mint(_beneficiary, 50);
 
         emit PostClosed(_postId, _beneficiary, post.amount);
     }

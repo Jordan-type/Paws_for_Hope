@@ -4,13 +4,8 @@ pragma solidity ^0.8.26;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./registerUsers.sol";
-import "./tokenHelPet.sol";
+import "./tokenPawsForHopeToken.sol";
 
-/**
- * @dev Contract deployed on Base Sepolia
- * @notice You can view the deployed contract at:
- * https://sepolia.basescan.org/address/0xa6C05211B3331167f92A1C53f18b999Ee15Fa20d#code
-*/
 
 contract Donate is Ownable {
     
@@ -46,19 +41,19 @@ contract Donate is Ownable {
 
     // Reference to other contracts
     RegisterUsers public registerUsers;
-    HelPetToken public tokenHelPet;
+    PawsForHopeToken public tokenPawsForHopeToken;
     IERC20 public usdc;
 
     /**
      * @dev Constructor initializes the contract with references to other contracts
      * @param _registerUsers Address of the RegisterUsers contract
-     * @param _tokenHelPet Address of the HelPetToken contract
+     * @param _tokenPawsForHopeToken Address of the tokenPawsForHopeToken contract
      */
-    constructor(address _registerUsers, address _tokenHelPet) Ownable(msg.sender) {
+    constructor(address _registerUsers, address _tokenPawsForHopeToken) Ownable(msg.sender) {
         require(_registerUsers != address(0), "Invalid RegisterUsers address");
-        require(_tokenHelPet != address(0), "Invalid TokenHelPet address");
+        require(_tokenPawsForHopeToken != address(0), "Invalid TokenHelPet address");
         registerUsers = RegisterUsers(_registerUsers);
-        tokenHelPet = HelPetToken(_tokenHelPet);
+        tokenPawsForHopeToken = PawsForHopeToken(_tokenPawsForHopeToken);
         usdc = IERC20(USDC);
     }
 
