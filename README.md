@@ -1,13 +1,13 @@
 # Smart Contract Documentation: PawsForHope token and Related Contracts
 
 ## Overview
-This project implements a decentralized platform for pet-related use cases, leveraging blockchain technology. The system incorporates a token (USDCPet), donation management, a pet search mechanism, and user registration.
+This project implements a decentralized platform for pet-related use cases, leveraging blockchain technology. The system incorporates a token (USDCPaws), donation management, a pet search mechanism, and user registration.
 
 ---
 
 ## Key Components and Functionality
 
-### 1. **USDCPet Token Contract**
+### 1. **USDCPaws Token Contract**
 - **Purpose:** Provides a fungible token used within the platform.
 - **Core Functions:**
   - `mint(address to, uint256 amount)`: Mints new tokens for a specified address.
@@ -75,7 +75,7 @@ Below is the **Entity Relationship Diagram** that illustrates the relationships 
            |                       |
            v                       v
 +-------------------+      +---------------------+
-|     USDCPet       |<---->|     FindPet         |
+|     USDCPaws       |<---->|     FindPet         |
 +-------------------+      +---------------------+
            ^                       ^
            |                       |
