@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./registerUsers.sol";
-import "./tokenPawsForHopeToken.sol";
-
+import "./RegisterUsers.sol";
+import "./PawsForHopeToken.sol";
 
 contract Donate is Ownable {
     
@@ -15,16 +14,19 @@ contract Donate is Ownable {
     // Base Mainnet USDC contract address
     //address constant public USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
 
-    // USDCPet contract address
-    address constant public USDC = 0x1dfe0B41dDebe308B6096D32a0c404b2d835C6Ce;
+    // USDCPaws contract address
+    // address constant public USDC = 0xDA07165D4f7c84EEEfa7a4Ff439e039B7925d3dF;
 
     // Struct to store post information
     struct Post {
         address creator;
         uint256 targetAmount;
         uint256 currentAmount;
+        string category;          // Category of the donation
+        string description;       // Purpose of the donation
+        uint256 deadline;         // Deadline for the campaign
+        string beneficiary;       // Beneficiary organization or cause
         bool isOpen;
-        string description;
     }
 
     // Mapping from post ID to Post struct
@@ -39,30 +41,23 @@ contract Donate is Ownable {
     event AgentAdded(address indexed agent);
     event AgentRemoved(address indexed agent);
 
-    // Reference to other contracts
-    RegisterUsers public registerUsers;
+    // Reference to other contracts 
+    // RegisterUsers public registerUsers;
     PawsForHopeToken public tokenPawsForHopeToken;
-    IERC20 public usdc;
+    IERC20 public usdc; // USDCPaws contract address
 
     /**
      * @dev Constructor initializes the contract with references to other contracts
-     * @param _registerUsers Address of the RegisterUsers contract
-     * @param _tokenPawsForHopeToken Address of the tokenPawsForHopeToken contract
+     * @param _pawsForHopeToken Address of the tokenPawsForHopeToken contract
      */
-    constructor(address _registerUsers, address _tokenPawsForHopeToken) Ownable(msg.sender) {
-        require(_registerUsers != address(0), "Invalid RegisterUsers address");
-        require(_tokenPawsForHopeToken != address(0), "Invalid TokenHelPet address");
-        registerUsers = RegisterUsers(_registerUsers);
-        tokenPawsForHopeToken = PawsForHopeToken(_tokenPawsForHopeToken);
-        usdc = IERC20(USDC);
-    }
-
-    /**
-     * @dev Modifier to restrict functions to authorized agents only
-     */
-    modifier onlyAgent() {
-        require(agents[msg.sender], "Only agents can perform this action");
-        _;
+    constructor(address _pawsForHopeToken, address _USDCpaws) Ownable(msg.sender) {
+        // require(_registerUsers != address(0), "Invalid RegisterUsers address");
+        require(_pawsForHopeToken != address(0), "Invalid TokenPawsForHope address");
+        require(_USDCpaws != address(0), "Invalid USDCPaws address");
+        
+        // registerUsers = RegisterUsers(_registerUsers);
+        tokenPawsForHopeToken = PawsForHopeToken(_pawsForHopeToken);
+        usdc = IERC20(_USDCpaws);
     }
 
     /**
@@ -99,22 +94,55 @@ contract Donate is Ownable {
      * @param _targetAmount Target amount for the donation in USDC
      * @param _description Description of the donation purpose
      */
-    function createDonationPost(uint256 _targetAmount, string memory _description) external {
-        require(registerUsers.isRegisteredEntity(msg.sender), "Only registered entities can create posts");
+    function createDonationPost(uint256 _targetAmount, string memory _category, string memory _description, uint256 _deadline, string memory _beneficiary) external {
         require(_targetAmount > 0, "Target amount must be greater than 0");
         require(bytes(_description).length > 0, "Description cannot be empty");
 
         uint256 postId = postIdCounter++;
-        posts[postId] = Post({
-            creator: msg.sender,
-            targetAmount: _targetAmount,
-            currentAmount: 0,
-            isOpen: true,
-            description: _description
-        });
+        posts[postId] = Post({creator: msg.sender, targetAmount: _targetAmount, currentAmount: 0, category: _category, description: _description, deadline: _deadline, beneficiary: _beneficiary, isOpen: true});
 
         emit PostCreated(postId, msg.sender, _targetAmount, _description);
     }
+
+    function getAllPosts() external view returns (Post[] memory) {
+        Post[] memory allPosts = new Post[](postIdCounter);
+        for (uint256 i = 0; i < postIdCounter; i++) {
+            allPosts[i] = posts[i];
+            }
+        return allPosts;
+    }
+
+    function getPostsByCategory(string memory _category) external view returns (Post[] memory) {
+        uint256 count = 0;
+        
+        for (uint256 i = 0; i < postIdCounter; i++) {
+            if (keccak256(abi.encodePacked(posts[i].category)) == keccak256(abi.encodePacked(_category))) {
+                count++;
+            }
+        }
+        
+        Post[] memory categoryPosts = new Post[](count);
+        uint256 index = 0;
+        for (uint256 i = 0; i < postIdCounter; i++) {
+            if (keccak256(abi.encodePacked(posts[i].category)) == keccak256(abi.encodePacked(_category))) {
+                categoryPosts[index] = posts[i];
+                index++;
+            }
+        }
+        
+        return categoryPosts;
+    }
+    
+    /**
+    * @dev Returns the total donations made across all posts.
+    * @return totalDonations The total amount of donations in USDC.
+    */
+    function getTotalDonations() external view returns (uint256 totalDonations) {
+        for (uint256 i = 0; i < postIdCounter; i++) {
+            totalDonations += posts[i].currentAmount;
+        }
+    }
+
 
     /**
      * @dev Closes a donation post
@@ -124,10 +152,7 @@ contract Donate is Ownable {
         require(_postId < postIdCounter, "Post does not exist");
         Post storage post = posts[_postId];
         require(post.isOpen, "Post is already closed");
-        require(
-            msg.sender == post.creator || agents[msg.sender],
-            "Only creator or agent can close post"
-        );
+        require(msg.sender == post.creator || agents[msg.sender], "Only creator or agent can close post");
 
         post.isOpen = false;
         emit PostClosed(_postId);
@@ -138,34 +163,26 @@ contract Donate is Ownable {
      * @param _postId ID of the post to donate to
      * @param _amount Amount to donate in USDC
      */
-    function donateToPost(uint256 _postId, uint256 _amount) external {
-        require(
-            registerUsers.isRegisteredUser(msg.sender) || 
-            registerUsers.isRegisteredEntity(msg.sender),
-            "Must be registered user or entity"
-        );
+    function donateToPost(uint256 _postId, uint256 _amount) external payable {
         require(_postId < postIdCounter, "Post does not exist");
         require(_amount > 0, "Amount must be greater than 0");
         
         Post storage post = posts[_postId];
         require(post.isOpen, "Post is closed");
 
+        require(usdc.balanceOf(msg.sender) >= _amount, "Insufficient USDC balance");
+        require(usdc.allowance(msg.sender, address(this)) >= _amount, "Insufficient allowance");
+
         uint256 creatorAmount = (_amount * 99) / 100;
         uint256 ownerAmount = _amount - creatorAmount;
 
-        require(
-            usdc.transferFrom(msg.sender, post.creator, creatorAmount),
-            "Creator transfer failed"
-        );
-        require(
-            usdc.transferFrom(msg.sender, owner(), ownerAmount),
-            "Owner transfer failed"
-        );
+        require(usdc.transferFrom(msg.sender, post.creator, creatorAmount), "Creator transfer failed");
+        require(usdc.transferFrom(msg.sender, owner(), ownerAmount), "Owner transfer failed");
 
         post.currentAmount += _amount;
         
-        // Mint HelPet tokens to donor
-        tokenHelPet.mint(msg.sender, 50);
+        // Mint PawsForHope tokens to donors
+        tokenPawsForHopeToken.mint(msg.sender, 100);
         
         emit DonationReceived(_postId, msg.sender, _amount);
     }

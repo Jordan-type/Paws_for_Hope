@@ -1,13 +1,27 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-
 contract RegisterUsers is Ownable {
-    // Mapping to track authorized agents
-    mapping(address => bool) private agents;
-    
+
+        // Counter for community IDs
+    uint256 private communityIdCounter = 0;
+
+    // Struct to store community information
+    struct Community {
+        string name;
+        string description;
+        address creator;
+        uint256 createdAt;
+        address[] members;
+    }
+
+
+    mapping(uint256 => Community) private communities;     // Mapping to track communities
+    mapping(address => bool) private agents;              // Mapping to track authorized agents
+
     // Mappings to track registered users and entities
     mapping(address => bool) private registeredUsers;
     mapping(address => bool) private registeredEntities;
@@ -17,13 +31,10 @@ contract RegisterUsers is Ownable {
     event AgentRemoved(address indexed agent);
     event UserRegistered(address indexed user, bool isEntity);
     event UserRemoved(address indexed user, bool isEntity);
+    event CommunityCreated(uint256 indexed communityId, string name, address creator);
+    event MemberAdded(uint256 indexed communityId, address member);
 
-    /**
-     * @dev Constructor initializes the contract with the deployer as owner
-     */
-    constructor() Ownable(msg.sender) {}
-
-    /**
+     /**
      * @dev Modifier to restrict functions to authorized agents only
      */
     modifier onlyAgent() {
@@ -32,8 +43,14 @@ contract RegisterUsers is Ownable {
     }
 
     /**
+     * @dev Constructor initializes the contract with the deployer as owner
+     */
+    constructor() Ownable(msg.sender) {}
+
+
+    /**
      * @dev Adds a new agent
-     * @param _agent Address of the agent to add
+     * @param _agent Address of the agent to add - pet vets
      */
     function addAgent(address _agent) external onlyOwner {
         require(_agent != address(0), "Cannot add zero address as agent");
@@ -79,6 +96,51 @@ contract RegisterUsers is Ownable {
     }
 
     /**
+     * @dev Creates a new community
+     * @param _name Name of the community
+     * @param _description Description of the community
+     */
+    function createCommunity(string calldata _name, string calldata _description) external {
+        require(bytes(_name).length > 0, "Community name cannot be empty");
+        require(bytes(_description).length > 0, "Community description cannot be empty");
+        require(registeredUsers[msg.sender] || registeredEntities[msg.sender], "Only registered users or entities can create communities");
+
+        uint256 communityId = communityIdCounter++;
+        Community storage newCommunity = communities[communityId];
+        newCommunity.name = _name;
+        newCommunity.description = _description;
+        newCommunity.creator = msg.sender;
+        newCommunity.createdAt = block.timestamp;
+
+        emit CommunityCreated(communityId, _name, msg.sender);
+    }
+    
+    
+    /**
+     * @dev Adds a member to a community
+     * @param _communityId ID of the community
+     * @param _member Address of the member to add
+     */
+    function addMember(uint256 _communityId, address _member) external {
+        require(_communityId < communityIdCounter, "Community does not exist");
+        require(msg.sender == communities[_communityId].creator, "Only the creator can add members");
+        require(registeredUsers[_member], "Member must be a registered user");
+
+        communities[_communityId].members.push(_member);
+        emit MemberAdded(_communityId, _member);
+    }
+
+    /**
+     * @dev Retrieves community information
+     * @param _communityId ID of the community
+     */
+    function getCommunity(uint256 _communityId) external view returns (Community memory) {
+        require(_communityId < communityIdCounter, "Community does not exist");
+        return communities[_communityId];
+    }
+
+
+    /**
      * @dev Removes a normal user
      * @param _user Address of the user to remove
      */
@@ -88,6 +150,27 @@ contract RegisterUsers is Ownable {
         
         registeredUsers[_user] = false;
         emit UserRemoved(_user, false);
+    }
+
+    /**
+     * @dev Returns a list of all agents
+     */
+    function getAgents() external view returns (address[] memory) {
+        uint256 agentCount = 0;
+        for (uint256 i = 0; i < block.number; i++) {
+            if (agents[address(uint160(i))]) {
+                agentCount++;
+            }
+        }
+
+        address[] memory agentList = new address[](agentCount);
+        uint256 index = 0;
+        for (uint256 i = 0; i < block.number; i++) {
+            if (agents[address(uint160(i))]) {
+                agentList[index++] = address(uint160(i));
+            }
+        }
+        return agentList;
     }
 
     /**

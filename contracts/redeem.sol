@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./registerUsers.sol";
-import "./tokenPawsForHopeToken.sol";
+import "./RegisterUsers.sol";
+import "./PawsForHopeToken.sol";
 
 
 contract Redeem is Ownable {
@@ -14,8 +14,13 @@ contract Redeem is Ownable {
     // Struct to store post information
     struct Post {
         address creator;
-        uint256 stock;
-        uint256 price;
+        uint256 stock;            // Number of items in stock
+        uint256 price;            // Price in PawsForHopeToken tokens
+        string category;          // Category of the item or service (e.g., veterinary, food, adoption)
+        string description;       // Description of the item or service
+        string location;          // Location of the service or item
+        string contactInfo;       // Contact information for further inquiries
+        uint256 createdAt;        // Timestamp of post creation
         bool isOpen;
     }
 
@@ -23,10 +28,8 @@ contract Redeem is Ownable {
     RegisterUsers public registerUsers;
     PawsForHopeToken public tokenPawsForHopeToken;
 
-    // Mapping to track authorized agents
-    mapping(address => bool) private agents;
-    // Mapping from post ID to Post struct
-    mapping(uint256 => Post) public posts;
+    mapping(address => bool) private agents;     // Mapping to track authorized agents
+    mapping(uint256 => Post) public posts;      // Mapping from post ID to Post struct
 
     // Events
     event AgentAdded(address indexed agent);
@@ -37,14 +40,13 @@ contract Redeem is Ownable {
 
     /**
      * @dev Constructor initializes the contract with references to other contracts
-     * @param _registerUsers Address of the RegisterUsers contract
      * @param _tokenPawsForHopeToken Address of the PawsForHopeToken contract
      */
-    constructor(address _registerUsers, address _tokenPawsForHopeToken) Ownable(msg.sender) {
-        require(_registerUsers != address(0), "Invalid RegisterUsers address");
+    constructor(address _tokenPawsForHopeToken) Ownable(msg.sender) {
+        // require(_registerUsers != address(0), "Invalid RegisterUsers address");
         require(_tokenPawsForHopeToken != address(0), "Invalid tokenPawsForHopeToken address");
-        registerUsers = RegisterUsers(_registerUsers);
-        tokenPawsHope = PawsForHopeToken(_tokenPawsForHopeToken);
+        // registerUsers = RegisterUsers(_registerUsers);
+        tokenPawsForHopeToken = PawsForHopeToken(_tokenPawsForHopeToken);
     }
 
     /**
@@ -89,16 +91,19 @@ contract Redeem is Ownable {
      * @param _stock Number of items in stock
      * @param _price Price in PawsForHopeToken tokens
      */
-    function createPost(uint256 _stock, uint256 _price) external {
-        require(registerUsers.isRegisteredEntity(msg.sender), "Only registered entities can create posts");
+    function createPost(uint256 _stock, uint256 _price, string memory _category, string memory _description, string memory _location, string memory _contactInfo) external {
+        // require(registerUsers.isRegisteredEntity(msg.sender), "Only registered entities can create posts");
         require(_stock > 0, "Stock must be greater than 0");
         require(_price > 0, "Price must be greater than 0");
+        require(bytes(_category).length > 0, "Category cannot be empty");
+        require(bytes(_description).length > 0, "Description cannot be empty");
 
         uint256 postId = postIdCounter++;
-        posts[postId] = Post({
-            creator: msg.sender,
-            stock: _stock,
-            price: _price,
+        posts[postId] = Post({ creator: msg.sender, stock: _stock,
+            price: _price, category: _category, description: _description,
+            location: _location,
+            contactInfo: _contactInfo,
+            createdAt: block.timestamp,
             isOpen: true
         });
 
@@ -123,18 +128,12 @@ contract Redeem is Ownable {
      * @param _postId ID of the post to redeem from
      */
     function redeemItem(uint256 _postId) external {
-        require(
-            registerUsers.isRegisteredUser(msg.sender) || registerUsers.isRegisteredEntity(msg.sender),
-            "Only registered users or entities can redeem"
-        );
+        // require(registerUsers.isRegisteredUser(msg.sender) || registerUsers.isRegisteredEntity(msg.sender), "Only registered users or entities can redeem");
 
         Post storage post = posts[_postId];
         require(post.isOpen, "Post is closed");
         require(post.stock > 0, "No items left in stock");
-        require(
-            tokenPawsForHopeToken.balanceOf(msg.sender) >= post.price,
-            "Insufficient token balance"
-        );
+        require(tokenPawsForHopeToken.balanceOf(msg.sender) >= post.price, "Insufficient token balance");
 
         post.stock--;
         tokenPawsForHopeToken.transferFrom(msg.sender, post.creator, post.price);

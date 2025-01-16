@@ -101,3 +101,60 @@ npx hardhat ignition deploy ./ignition/modules/deploy.js || npx hardhat run ./ig
 npx hardhat verify --network lisk-sepolia <deployed address>
 
 ```
+<!-- 
+Deploying RegisterUsers...
+reusing "RegisterUsers" at 0xE104860e2caE646f2F2C96F4164a8459061cc988
+RegisterUsers deployed to: 0xE104860e2caE646f2F2C96F4164a8459061cc988
+Deploying PawsForHopeToken...
+deploying "PawsForHopeToken" (tx: 0x86d39d5f62330498caa321b34daedaa59f1822f6aa69b507503c094511a9c29c)...: deployed at 0x5091F028b9a4151EE9acDF255B3a55263508dEa3 with 1275947 gas
+PawsForHopeToken deployed to: 0x5091F028b9a4151EE9acDF255B3a55263508dEa3
+Deploying USDCPaws...
+deploying "USDCPaws" (tx: 0x8ee705950104fa55488828fafe5f7bd52fdcbed31041632222c1228bb5d2f226)...: deployed at 0x17896b08cabD2759cc2047a8e726845CbEE9a3fB with 693552 gas
+USDCPaws deployed to: 0x17896b08cabD2759cc2047a8e726845CbEE9a3fB
+Deploying Donate...
+deploying "Donate" (tx: 0x170de6891e0789991217697bd94dca654ef2110f0d15e49959771b01c21dab11)...: deployed at 0x59a89b06D3C692Ef5a516093C42F1ab845556Cee with 1797252 gas
+Donate deployed to: 0x59a89b06D3C692Ef5a516093C42F1ab845556Cee
+Deploying FindPet...
+deploying "FindPet" (tx: 0x47594a2a236829a6211b4d3c87ccb6d571b244ae61e8a3b49f3bf54ba53b7b9b)...: deployed at 0xd4475C6409a6F7a3AC042aaBE53f8F455081610f with 1644404 gas
+FindPet deployed to: 0xd4475C6409a6F7a3AC042aaBE53f8F455081610f
+Deploying Redeem...
+deploying "Redeem" (tx: 0xc00d3eb0997f3a9ec516fa14a9aaa7e2f850c67239b1952ee60128a9007d335f)...: deployed at 0x76e0a9DA47fe2D86bDfe72980B927547C52064Ba with 1090713 gas
+Redeem deployed to: 0x76e0a9DA47fe2D86bDfe72980B927547C52064Ba
+
+Deployment completed successfully!
+Done in 68.48s. -->
+
+
+<!-- contract 
+RegisterUsers deployed to: 0xE104860e2caE646f2F2C96F4164a8459061cc988
+PawsForHopeToken deployed to: 0x5091F028b9a4151EE9acDF255B3a55263508dEa3
+USDCPaws deployed to: 0x17896b08cabD2759cc2047a8e726845CbEE9a3fB
+Donate deployed to: 0x59a89b06D3C692Ef5a516093C42F1ab845556Cee
+FindPet deployed to: 0xd4475C6409a6F7a3AC042aaBE53f8F455081610f
+Redeem deployed to: 0x76e0a9DA47fe2D86bDfe72980B927547C52064Ba
+ -->
+
+
+
+
+<!-- Deploying RegisterUsers...
+reusing "RegisterUsers" at 0xA1bC15400b27de56fd49B2602E8CDE718528980F
+RegisterUsers deployed to: 0xA1bC15400b27de56fd49B2602E8CDE718528980F
+Deploying PawsForHopeToken...
+reusing "PawsForHopeToken" at 0x867FB814457854b8Fcc8C6A0f218CbeCda67A914
+PawsForHopeToken deployed to: 0x867FB814457854b8Fcc8C6A0f218CbeCda67A914
+Deploying Donate...
+reusing "Donate" at 0x51AeEa0B00ca68e6755e1D0DEfaA6932a1972fBa
+Donate deployed to: 0x51AeEa0B00ca68e6755e1D0DEfaA6932a1972fBa
+Deploying FindPet...
+reusing "FindPet" at 0x28E3F40b08dDF9dbDb3d5EF71E1F8783ffa2B18A
+FindPet deployed to: 0x28E3F40b08dDF9dbDb3d5EF71E1F8783ffa2B18A
+Deploying Redeem...
+reusing "Redeem" at 0x996A037aE0CB6Dfdfc76eA6D431f1d9327477752
+Redeem deployed to: 0x996A037aE0CB6Dfdfc76eA6D431f1d9327477752
+Deploying USDCPaws...
+deploying "USDCPaws" (tx: 0xf7225c6834310925544e1397bbec9346418b96bd0511e65e8b73f5d07f8e169e)...: deployed at 0x942e416a411d4cEBba01B0a81A505ad35E5d0986 with 360218 gas
+USDCPaws deployed to: 0x942e416a411d4cEBba01B0a81A505ad35E5d0986
+
+Deployment completed successfully!
+Done in 35.64s -->

@@ -1,27 +1,48 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
+/**
+ * @title USDCPaws
+ * @dev Implementation of an ERC20 token with OpenZeppelin
+ */
+contract USDCPaws is ERC20, Ownable {
 
-contract USDCPet {
-    string public name = "USD Coin Paws";
-    string public symbol = "USDCPaws";
-    uint8 public decimals = 6;
-    
-    mapping(address => uint256) public balanceOf;
+    uint8 private immutable _decimals = 6;
 
+    /**
+     * @dev Constructor to initialize the token with name, symbol, and decimals.
+     */
+    constructor() ERC20("USD Coin Paws", "USDCPaws") Ownable(msg.sender) {}
 
-    // Function to mint new tokens
-    function mint(address to, uint256 amount) public {
-        balanceOf[to] += amount;
+    /**
+     * @dev Returns the number of decimals the token uses.
+     */
+    function decimals() public pure override returns (uint8) {
+        return _decimals;
     }
 
-    // Function to transfer tokens
-    function transfer(address to, uint256 amount) public returns (bool) {
-        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
-        balanceOf[msg.sender] -= amount;
-        balanceOf[to] += amount;
-        return true;
+    /**
+     * @dev Mints `amount` tokens to the `to` address.
+     * Can only be called by the owner.
+     * @param to Address to mint tokens to.
+     * @param amount Amount of tokens to mint.
+     */
+    function mint(address to, uint256 amount) external onlyOwner {
+        require(to != address(0), "Cannot mint to the zero address");
+        _mint(to, amount);
     }
-    
+
+    /**
+     * @dev Burns `amount` tokens from the `from` address.
+     * Can only be called by the owner.
+     * @param from Address to burn tokens from.
+     * @param amount Amount of tokens to burn.
+     */
+    function burn(address from, uint256 amount) external onlyOwner {
+        require(from != address(0), "Cannot burn from the zero address");
+        _burn(from, amount);
+    }
 }

@@ -1,0 +1,36 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/USDCPaws.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\ncontract USDCPaws {\n    string public name = \"USD Coin Paws\";\n    string public symbol = \"USDCPaws\";\n    uint8 public decimals = 6;\n    \n    mapping(address => uint256) public balanceOf;\n\n\n    // Function to mint new tokens\n    function mint(address to, uint256 amount) public {\n        balanceOf[to] += amount;\n    }\n\n    // Function to transfer tokens\n    function transfer(address to, uint256 amount) public returns (bool) {\n        require(balanceOf[msg.sender] >= amount, \"Insufficient balance\");\n        balanceOf[msg.sender] -= amount;\n        balanceOf[to] += amount;\n        return true;\n    }\n    \n}"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 800
+    },
+    "evmVersion": "paris",
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}

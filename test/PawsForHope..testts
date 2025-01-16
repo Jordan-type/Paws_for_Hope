@@ -1,0 +1,121 @@
+import { expect } from "chai";
+import { ethers } from "hardhat";
+import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
+import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
+import { USDCPaws, RegisterUsers, PawsForHopeToken, Donate, Redeem } from "../typechain-types";
+
+describe("PawsForHope Contracts", function () {
+  async function deployContractsFixture() {
+    const [owner, agent, user, entity, beneficiary] = await ethers.getSigners();
+
+    // Deploy USDCPaws contract
+    const USDCPawsFactory = await ethers.getContractFactory("USDCPaws");
+    const usdcPaws = (await USDCPawsFactory.deploy()) as unknown as USDCPaws;
+
+    // Deploy RegisterUsers contract
+    const RegisterUsersFactory = await ethers.getContractFactory("RegisterUsers");
+    const registerUsers = (await RegisterUsersFactory.deploy()) as unknown as RegisterUsers;
+
+    // Deploy PawsForHopeToken contract
+    const PawsForHopeTokenFactory = await ethers.getContractFactory("PawsForHopeToken");
+    const pawsForHopeToken = (await PawsForHopeTokenFactory.deploy("Paws For Hope", "PAWS")) as unknown as PawsForHopeToken;
+
+    // Deploy Donate contract
+    const DonateFactory = await ethers.getContractFactory("Donate");
+    const donate = (await DonateFactory.deploy(registerUsers.address, pawsForHopeToken.address)) as unknown as Donate;
+
+    // Deploy Redeem contract
+    const RedeemFactory = await ethers.getContractFactory("Redeem");
+    const redeem = (await RedeemFactory.deploy(registerUsers.address, pawsForHopeToken.address)) as unknown as Redeem;
+
+    return {
+      owner,
+      agent,
+      user,
+      entity,
+      beneficiary,
+      usdcPaws,
+      registerUsers,
+      pawsForHopeToken,
+      donate,
+      redeem,
+    };
+  }
+
+  describe("USDCPaws", function () {
+    it("should mint and transfer tokens correctly", async function () {
+      const { usdcPaws, user, beneficiary } = await loadFixture(
+        deployContractsFixture
+      );
+
+      await usdcPaws.mint(user.address, 1000);
+      expect(await usdcPaws.balanceOf(user.address)).to.equal(1000);
+
+      await usdcPaws.connect(user).transfer(beneficiary.address, 500);
+      expect(await usdcPaws.balanceOf(user.address)).to.equal(500);
+      expect(await usdcPaws.balanceOf(beneficiary.address)).to.equal(500);
+    });
+  });
+
+  describe("RegisterUsers", function () {
+    it("should register and remove users correctly", async function () {
+      const { registerUsers, owner, agent, user } = await loadFixture(
+        deployContractsFixture
+      );
+
+      await registerUsers.addAgent(agent.address);
+      expect(await registerUsers.isAgent(agent.address)).to.be.true;
+
+      await registerUsers.connect(agent).registerUser(user.address);
+      expect(await registerUsers.isRegisteredUser(user.address)).to.be.true;
+
+      await registerUsers.connect(agent).removeUser(user.address);
+      expect(await registerUsers.isRegisteredUser(user.address)).to.be.false;
+    });
+  });
+
+  describe("PawsForHopeToken", function () {
+    it("should mint and freeze accounts correctly", async function () {
+      const { pawsForHopeToken, owner, agent, user } = await loadFixture(
+        deployContractsFixture
+      );
+
+      await pawsForHopeToken.addAgent(agent.address);
+      expect(await pawsForHopeToken.connect(owner).isAgent(agent.address)).to.be.true;
+
+      await pawsForHopeToken.connect(agent).mint(user.address, 1000);
+      expect(await pawsForHopeToken.balanceOf(user.address)).to.equal(1000);
+
+      await pawsForHopeToken.connect(agent).freezeAccount(user.address);
+      expect(await pawsForHopeToken.isFrozen(user.address)).to.be.true;
+    });
+  });
+
+  describe("Donate", function () {
+    it("should create and donate to posts", async function () {
+      const { donate, registerUsers, pawsForHopeToken, user, entity } =
+        await loadFixture(deployContractsFixture);
+
+      await registerUsers.addAgent(entity.address);
+      await registerUsers.connect(entity).registerEntity(entity.address);
+
+      await donate.connect(entity).createDonationPost(1000, "Help Pets!");
+      const post = await donate.posts(0);
+      expect(post.targetAmount).to.equal(1000);
+    });
+  });
+
+  describe("Redeem", function () {
+    it("should allow redemption of items", async function () {
+      const { redeem, registerUsers, pawsForHopeToken, user, entity } =
+        await loadFixture(deployContractsFixture);
+
+      await registerUsers.addAgent(entity.address);
+      await registerUsers.connect(entity).registerEntity(entity.address);
+
+      await redeem.connect(entity).createPost(10, 100);
+      const post = await redeem.posts(0);
+      expect(post.stock).to.equal(10);
+    });
+  });
+});
